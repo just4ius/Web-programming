@@ -1,0 +1,73 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Сторінка-1" id="oI0UhP2Cudgj_sy_AIBv">
+    <mxGraphModel dx="1414" dy="777" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="t4x4x8G0oB3tQiMOi0vO-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="&lt;b&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;Архітектурна діаграма проєкту&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="60" width="296" x="266" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="t4x4x8G0oB3tQiMOi0vO-4" edge="1" parent="1" source="t4x4x8G0oB3tQiMOi0vO-2" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="414" y="130" as="sourcePoint" />
+            <mxPoint x="414.5" y="140" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="t4x4x8G0oB3tQiMOi0vO-7" parent="1" style="shape=callout;whiteSpace=wrap;html=1;perimeter=calloutPerimeter;rotation=90;" value="" vertex="1">
+          <mxGeometry height="112.5" width="29.96" x="457.21" y="213.75" as="geometry" />
+        </mxCell>
+        <mxCell id="t4x4x8G0oB3tQiMOi0vO-6" parent="1" style="text;whiteSpace=wrap;html=1;" value="&lt;span lang=&quot;EN-US&quot; style=&quot;font-size:8.5pt;mso-bidi-font-size:&#xa;11.0pt;line-height:115%;font-family:Consolas;mso-fareast-font-family:&amp;quot;MS Mincho&amp;quot;;&#xa;mso-fareast-theme-font:minor-fareast;mso-bidi-font-family:&amp;quot;Times New Roman&amp;quot;;&#xa;mso-bidi-theme-font:minor-bidi;color:#334155;mso-ansi-language:EN-US;&#xa;mso-fareast-language:EN-US;mso-bidi-language:AR-SA&quot;&gt;HTTP / REST API (JSON)&lt;/span&gt;" vertex="1">
+          <mxGeometry height="40" width="80" x="450" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="t4x4x8G0oB3tQiMOi0vO-11" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="Client(Frontend)" vertex="1">
+          <mxGeometry height="100" width="200" x="314" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="t4x4x8G0oB3tQiMOi0vO-12" parent="t4x4x8G0oB3tQiMOi0vO-11" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;div&gt;HTML5 (семантична розмітка) + CSS3 (стилі) + ванільний JavaScript&lt;/div&gt;&lt;div&gt;&amp;nbsp;(DOM/FETCH)&lt;/div&gt;" vertex="1">
+          <mxGeometry height="78.76" width="200" y="21.24" as="geometry" />
+        </mxCell>
+        <mxCell id="t4x4x8G0oB3tQiMOi0vO-13" edge="1" parent="1" source="t4x4x8G0oB3tQiMOi0vO-12" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="t4x4x8G0oB3tQiMOi0vO-14" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="420" y="310" as="sourcePoint" />
+            <mxPoint x="470" y="260" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="t4x4x8G0oB3tQiMOi0vO-14" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="&lt;span lang=&quot;EN-US&quot; style=&quot;font-size: 8.5pt; line-height: 115%; font-family: Consolas;&quot;&gt;&lt;font style=&quot;color: rgb(0, 0, 0);&quot;&gt;Backend&amp;nbsp;&lt;/font&gt;&lt;/span&gt;" vertex="1">
+          <mxGeometry height="100" width="200" x="314" y="310" as="geometry" />
+        </mxCell>
+        <mxCell id="t4x4x8G0oB3tQiMOi0vO-17" parent="t4x4x8G0oB3tQiMOi0vO-14" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Node.js (Express Framework)&lt;div&gt;Auth Module (JWT, Passwords).&lt;/div&gt;&lt;div&gt;Pages, content, controllers.&lt;/div&gt;&lt;div&gt;File upload services&lt;/div&gt;" vertex="1">
+          <mxGeometry height="110" width="200" y="10" as="geometry" />
+        </mxCell>
+        <mxCell id="t4x4x8G0oB3tQiMOi0vO-15" parent="1" style="shape=callout;whiteSpace=wrap;html=1;perimeter=calloutPerimeter;rotation=90;" value="" vertex="1">
+          <mxGeometry height="152.5" width="29.96" x="477.02" y="363.75" as="geometry" />
+        </mxCell>
+        <mxCell id="t4x4x8G0oB3tQiMOi0vO-16" parent="1" style="text;whiteSpace=wrap;html=1;" value="&lt;span lang=&quot;EN-US&quot; style=&quot;font-size: 8.5pt; line-height: 115%; font-family: Consolas; color: rgb(51, 65, 85);&quot;&gt;SQL Queries (pg-pool,parameterized)&lt;/span&gt;" vertex="1">
+          <mxGeometry height="40" width="88" x="448" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="t4x4x8G0oB3tQiMOi0vO-18" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <Array as="points">
+              <mxPoint x="413" y="440" />
+            </Array>
+            <mxPoint x="413" y="410" as="sourcePoint" />
+            <mxPoint x="413" y="480" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="t4x4x8G0oB3tQiMOi0vO-21" parent="1" style="swimlane;whiteSpace=wrap;html=1;startSize=23;" value="Database" vertex="1">
+          <mxGeometry height="80" width="200" x="314" y="480" as="geometry" />
+        </mxCell>
+        <mxCell id="t4x4x8G0oB3tQiMOi0vO-22" parent="t4x4x8G0oB3tQiMOi0vO-21" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;div&gt;PostgreSQL&amp;nbsp;&lt;/div&gt;&lt;div&gt;Схеми: Users, Roles, Workspaces, Pages, Tables, Logs&lt;/div&gt;" vertex="1">
+          <mxGeometry height="78.76" width="200" y="10.62" as="geometry" />
+        </mxCell>
+        <mxCell id="t4x4x8G0oB3tQiMOi0vO-23" parent="1" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="&lt;b&gt;Перспективні модулі розширення( Future Models)&lt;/b&gt;" vertex="1">
+          <mxGeometry height="90" width="610" x="109" y="585" as="geometry" />
+        </mxCell>
+        <mxCell id="t4x4x8G0oB3tQiMOi0vO-24" parent="t4x4x8G0oB3tQiMOi0vO-23" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="Notifications Module (сповіщення про зміни у протоколах)" vertex="1">
+          <mxGeometry height="30" width="610" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="t4x4x8G0oB3tQiMOi0vO-25" parent="t4x4x8G0oB3tQiMOi0vO-23" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="Payments Module (підписки на розширений простір)" vertex="1">
+          <mxGeometry height="30" width="610" y="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
