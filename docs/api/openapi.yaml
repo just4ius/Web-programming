@@ -34,6 +34,21 @@ paths:
       operationId: createPage
       tags:
         - Pages
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: false
+          description: Унікальний ключ для запобігання дублюванню операції створення сторінки
+          schema:
+            type: string
+            example: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d"
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Наскрізний ідентифікатор запиту (кореляція)
+          schema:
+            type: string
+            example: "req-12345"
       requestBody:
         required: true
         content:
@@ -48,6 +63,11 @@ paths:
       responses:
         '201':
           description: Сторінка успішно створена
+          headers:
+            X-Request-Id:
+              schema:
+                type: string
+              description: Ідентифікатор запиту для кореляції та трейсингу
           content:
             application/json:
               schema:
@@ -61,8 +81,13 @@ paths:
                 isArchived: false
                 createdAt: "2026-10-18T10:00:00.000Z"
                 updatedAt: "2026-10-18T10:00:00.000Z"
+                requestId: "req-12345"
         '400':
           description: Помилка валідації вхідних даних
+          headers:
+            X-Request-Id:
+              schema:
+                type: string
           content:
             application/json:
               schema:
@@ -73,6 +98,27 @@ paths:
                 details:
                   - field: title
                     message: "Title is required and cannot be empty"
+                requestId: "req-12345"
+        '429':
+          description: Перевищено ліміт запитів (Rate Limit Exceeded)
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Кількість секунд очікування перед повторним запитом
+            X-Request-Id:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: too_many_requests
+                code: TOO_MANY_REQUESTS
+                details:
+                  - message: "Rate limit exceeded. Please retry after 2s."
+                requestId: "req-12345"
 
     get:
       summary: Отримання списку сторінок
@@ -366,6 +412,11 @@ components:
           format: date-time
           description: Час останнього оновлення
           example: "2026-10-18T10:00:00.000Z"
+        requestId:
+          type: string
+          nullable: true
+          description: Ідентифікатор запиту для кореляції та трейсингу
+          example: "req-12345"
 
     ErrorDetail:
       type: object
@@ -398,3 +449,8 @@ components:
           description: Список деталей помилки
           items:
             $ref: '#/components/schemas/ErrorDetail'
+        requestId:
+          type: string
+          nullable: true
+          description: Ідентифікатор запиту (кореляція з X-Request-Id)
+          example: "b7e28d14-3c67-4e92-8051-9f939e075bda"
