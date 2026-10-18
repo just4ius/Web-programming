@@ -1,0 +1,400 @@
+openapi: 3.0.3
+info:
+  title: DocuFlow API (Notion Clone)
+  description: |
+    RESTful API для платформи управління базою знань і документами DocuFlow.
+    Реалізовано в межах Практики 4 (Модульний моноліт) для контексту Document & Page Management.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Локальний сервер розробки
+
+paths:
+  /health:
+    get:
+      summary: Перевірка працездатності сервера
+      description: Повертає статус працездатності додатку.
+      operationId: getHealth
+      tags:
+        - System
+      responses:
+        '200':
+          description: Сервер працює стабільно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: ok
+
+  /pages:
+    post:
+      summary: Створення нової сторінки
+      description: Створює новий документ у просторі знань.
+      operationId: createPage
+      tags:
+        - Pages
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePageRequest'
+            example:
+              title: "Архітектурний регламент"
+              icon: "📄"
+              parentId: null
+              userId: 1
+      responses:
+        '201':
+          description: Сторінка успішно створена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageResponse'
+              example:
+                id: 1
+                title: "Архітектурний регламент"
+                icon: "📄"
+                parentId: null
+                userId: 1
+                isArchived: false
+                createdAt: "2026-10-18T10:00:00.000Z"
+                updatedAt: "2026-10-18T10:00:00.000Z"
+        '400':
+          description: Помилка валідації вхідних даних
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: ValidationError
+                code: TITLE_REQUIRED
+                details:
+                  - field: title
+                    message: "Title is required and cannot be empty"
+
+    get:
+      summary: Отримання списку сторінок
+      description: Повертає масив створених сторінок із можливістю фільтрації.
+      operationId: listPages
+      tags:
+        - Pages
+      parameters:
+        - name: isArchived
+          in: query
+          required: false
+          description: Фільтр за станом архівації
+          schema:
+            type: boolean
+        - name: parentId
+          in: query
+          required: false
+          description: Фільтр за батьківською сторінкою
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Список сторінок успішно отримано
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PageResponse'
+              example:
+                - id: 1
+                  title: "Головна сторінка"
+                  icon: "🏠"
+                  parentId: null
+                  userId: 1
+                  isArchived: false
+                  createdAt: "2026-10-18T10:00:00.000Z"
+                  updatedAt: "2026-10-18T10:00:00.000Z"
+                - id: 2
+                  title: "Регламент розробки"
+                  icon: "⚙️"
+                  parentId: 1
+                  userId: 1
+                  isArchived: false
+                  createdAt: "2026-10-18T10:05:00.000Z"
+                  updatedAt: "2026-10-18T10:05:00.000Z"
+
+  /pages/{id}:
+    get:
+      summary: Отримання сторінки за ідентифікатором
+      description: Повертає детальні дані конкретної сторінки.
+      operationId: getPageById
+      tags:
+        - Pages
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Унікальний числовий ідентифікатор сторінки
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Сторінку знайдено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageResponse'
+              example:
+                id: 1
+                title: "Архітектурний регламент"
+                icon: "📄"
+                parentId: null
+                userId: 1
+                isArchived: false
+                createdAt: "2026-10-18T10:00:00.000Z"
+                updatedAt: "2026-10-18T10:00:00.000Z"
+        '404':
+          description: Сторінку з таким ID не знайдено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: NotFoundError
+                code: PAGE_NOT_FOUND
+                details:
+                  - message: "Page with ID 999 not found"
+
+    put:
+      summary: Оновлення сторінки
+      description: Повністю оновлює атрибути сторінки (назва, іконка, батьківський зв'язок, архівний стан).
+      operationId: updatePage
+      tags:
+        - Pages
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Унікальний числовий ідентифікатор сторінки
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePageRequest'
+            example:
+              title: "Оновлений архітектурний регламент"
+              icon: "📚"
+              parentId: null
+              isArchived: false
+      responses:
+        '200':
+          description: Сторінка успішно оновлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageResponse'
+              example:
+                id: 1
+                title: "Оновлений архітектурний регламент"
+                icon: "📚"
+                parentId: null
+                userId: 1
+                isArchived: false
+                createdAt: "2026-10-18T10:00:00.000Z"
+                updatedAt: "2026-10-18T10:15:00.000Z"
+        '400':
+          description: Некоректні дані запиту
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: ValidationError
+                code: TITLE_REQUIRED
+                details:
+                  - field: title
+                    message: "Title cannot be empty"
+        '404':
+          description: Сторінку для оновлення не знайдено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: NotFoundError
+                code: PAGE_NOT_FOUND
+                details:
+                  - message: "Page with ID 999 not found"
+
+    delete:
+      summary: Видалення сторінки
+      description: Видаляє сторінку за її ідентифікатором.
+      operationId: deletePage
+      tags:
+        - Pages
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Унікальний числовий ідентифікатор сторінки
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Сторінка успішно видалена (порожня відповідь)
+        '404':
+          description: Сторінку для видалення не знайдено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: NotFoundError
+                code: PAGE_NOT_FOUND
+                details:
+                  - message: "Page with ID 999 not found"
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          example: ok
+
+    CreatePageRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Назва сторінки
+          example: "Новий регламент"
+        icon:
+          type: string
+          nullable: true
+          maxLength: 50
+          description: Емодзі або іконка
+          example: "📝"
+        parentId:
+          type: integer
+          nullable: true
+          description: ID батьківської сторінки
+          example: null
+        userId:
+          type: integer
+          nullable: true
+          description: ID користувача-автора
+          example: 1
+
+    UpdatePageRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Нова назва сторінки
+          example: "Оновлений регламент"
+        icon:
+          type: string
+          nullable: true
+          maxLength: 50
+          description: Емодзі або іконка
+          example: "📑"
+        parentId:
+          type: integer
+          nullable: true
+          description: ID нової батьківської сторінки
+          example: null
+        isArchived:
+          type: boolean
+          description: Чи переміщено сторінку в архів
+          example: false
+
+    PageResponse:
+      type: object
+      required:
+        - id
+        - title
+        - isArchived
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: integer
+          description: Унікальний ідентифікатор
+          example: 1
+        title:
+          type: string
+          description: Назва сторінки
+          example: "Архітектурний регламент"
+        icon:
+          type: string
+          nullable: true
+          description: Іконка сторінки
+          example: "📄"
+        parentId:
+          type: integer
+          nullable: true
+          description: ID батьківської сторінки
+          example: null
+        userId:
+          type: integer
+          nullable: true
+          description: ID користувача-автора
+          example: 1
+        isArchived:
+          type: boolean
+          description: Статус архівації
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+          description: Час створення
+          example: "2026-10-18T10:00:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Час останнього оновлення
+          example: "2026-10-18T10:00:00.000Z"
+
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+          description: Назва поля DTO, що містить помилку
+          example: "title"
+        message:
+          type: string
+          description: Текстовий опис причини помилки
+          example: "Title is required and cannot be empty"
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - code
+      properties:
+        error:
+          type: string
+          description: Категорія або клас помилки
+          example: "ValidationError"
+        code:
+          type: string
+          description: Унікальний машиночитаний код помилки
+          example: "TITLE_REQUIRED"
+        details:
+          type: array
+          description: Список деталей помилки
+          items:
+            $ref: '#/components/schemas/ErrorDetail'
