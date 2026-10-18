@@ -16,6 +16,9 @@ describe('API Endpoints Integration Tests (OpenAPI compliance)', () => {
     testApp.use(cors());
     testApp.use(express.json());
 
+    const requestIdMiddleware = require('../api/middleware/requestId');
+    testApp.use(requestIdMiddleware);
+
     testApp.get('/health', (req, res) => {
       res.status(200).json({ status: 'ok' });
     });
