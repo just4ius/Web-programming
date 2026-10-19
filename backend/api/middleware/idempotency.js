@@ -43,11 +43,11 @@ function createIdempotencyMiddleware({
     // 2. Якщо вже виконується паралельний запит із цим же ключем (конкурентний double-click)
     if (inFlight.has(key)) {
       try {
-        const cached = await inFlight.get(key);
+        const result = await inFlight.get(key);
         const responseBody = typeof cached.body === 'object' && cached.body !== null
-          ? { ...cached.body, requestId: req.rid }
-          : cached.body;
-        return res.status(cached.status || 201).json(responseBody);
+          ? { ...result.body, requestId: req.rid }
+          : result.body;
+        return res.status(result.status).json(responseBody);
       } catch (err) {
         return next(err);
       }
@@ -60,21 +60,22 @@ function createIdempotencyMiddleware({
       resolveFlight = resolve;
       rejectFlight = reject;
     });
+    // The first request does not await this promise. A failed response can reject it
+    // before a concurrent request has attached its own handler.
+    flightPromise.catch(() => {});
     inFlight.set(key, flightPromise);
 
     // Перехоплюємо res.json для кешування відповіді
     const originalJson = res.json.bind(res);
     res.json = (body) => {
+      const response = {
+        status: res.statusCode,
+        body,
+      };
       if (res.statusCode >= 200 && res.statusCode < 300) {
-        const cachedEntry = {
-          status: res.statusCode,
-          body: body,
-        };
-        store.set(key, cachedEntry);
-        resolveFlight(cachedEntry);
-      } else {
-        rejectFlight(new Error(`Operation finished with error status ${res.statusCode}`));
+        store.set(key, response);
       }
+      resolveFlight(response);
       inFlight.delete(key);
       return originalJson(body);
     };
@@ -83,8 +84,15 @@ function createIdempotencyMiddleware({
     const originalNext = next;
     next = (err) => {
       if (err) {
-        rejectFlight(err);
-        inFlight.delete(key);
+        // Let the error handler write its status and body through res.json above.
+        // That response is then shared with concurrent requests using this key.
+        try {
+          return originalNext(err);
+        } catch (nextError) {
+          rejectFlight(nextError);
+          inFlight.delete(key);
+          throw nextError;
+        }
       }
       originalNext(err);
     };
