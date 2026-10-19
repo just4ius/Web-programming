@@ -10,7 +10,7 @@ const { createPageRouter, errorHandler } = require('./api/pageRouter');
 function createApp(options = {}) {
   const app = express();
 
-  app.use(cors());
+  app.use(cors({ exposedHeaders: ['X-Request-Id', 'Retry-After'] }));
   app.use(express.json());
 
   // 1. Кореляційний заголовок X-Request-Id для кожного запиту та відповіді
