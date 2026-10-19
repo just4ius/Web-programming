@@ -4,23 +4,64 @@ body {
     color: #172b4d;
     margin: 0;
     padding: 40px 20px;
-    display: flex;
-    justify-content: center;
 }
 
 .container {
-    background: #ffffff;
-    padding: 24px;
-    border-radius: 8px;
-    max-width: 450px;
-    width: 100%;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    max-width: 640px;
+    margin: 0 auto;
+}
+
+.header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
 }
 
 h1 {
-    font-size: 20px;
-    margin-top: 0;
+    font-size: 24px;
+    margin: 0;
+}
+
+h2 {
+    font-size: 16px;
+    margin: 0 0 12px;
+}
+
+.health {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.card {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
     margin-bottom: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.form {
+    display: flex;
+    gap: 8px;
+}
+
+input {
+    flex: 1;
+    min-width: 0;
+    padding: 9px 10px;
+    border: 1px solid #dfe1e6;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.icon-input {
+    flex: 0 0 48px;
+    text-align: center;
 }
 
 button {
@@ -37,8 +78,32 @@ button:hover {
     background-color: #0747a6;
 }
 
-button:disabled {
+button.secondary {
+    background-color: #ebecf0;
+    color: #172b4d;
+}
+
+button.secondary:hover {
+    background-color: #dfe1e6;
+}
+
+button.danger {
+    background-color: #de350b;
+}
+
+button.danger:hover {
+    background-color: #bf2600;
+}
+
+button.small {
+    padding: 6px 10px;
+    font-size: 13px;
+}
+
+button:disabled,
+button:disabled:hover {
     background-color: #a5b2c6;
+    color: #ffffff;
     cursor: not-allowed;
 }
 
@@ -51,10 +116,13 @@ button:disabled {
 ul {
     list-style: none;
     padding: 0;
-    margin-top: 16px;
+    margin: 12px 0;
 }
 
 li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     padding: 10px 12px;
     border-bottom: 1px solid #ebecf0;
     font-size: 14px;
@@ -62,4 +130,55 @@ li {
 
 li:last-child {
     border-bottom: none;
+}
+
+.page-title {
+    flex: 1;
+    word-break: break-word;
+}
+
+.check {
+    display: block;
+    margin-bottom: 12px;
+    font-size: 14px;
+}
+
+.badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 13px;
+    background: #ebecf0;
+}
+
+.badge.ok {
+    background: #e3fcef;
+    color: #006644;
+}
+
+.badge.bad {
+    background: #ffebe6;
+    color: #bf2600;
+}
+
+.banner {
+    position: sticky;
+    top: 0;
+    margin: -40px -20px 20px;
+    padding: 12px 20px;
+    background: #ffab00;
+    color: #172b4d;
+    text-align: center;
+    font-weight: 600;
+}
+
+.log {
+    max-height: 240px;
+    overflow: auto;
+    margin: 0;
+    padding: 12px;
+    background: #091e42;
+    color: #e3fcef;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: pre-wrap;
 }
