@@ -1,81 +1,78 @@
+// Запуск міграцій PostgreSQL.
+//   npm run migrate            — застосувати нові міграції з database/migrations
+//   npm run migrate -- --seed  — те саме + демо-дані з database/seeds
+// Кожна міграція виконується один раз (облік у таблиці schema_migrations) і в транзакції:
+// якщо в файлі помилка, база залишається в попередньому стані.
+
+const fs = require('fs');
+const path = require('path');
 const db = require('./db');
 
-const migrate = async () => {
+const MIGRATIONS_DIR = path.join(__dirname, 'database', 'migrations');
+const SEEDS_DIR = path.join(__dirname, 'database', 'seeds');
+
+function sqlFiles(dir) {
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir).filter((f) => f.endsWith('.sql')).sort();
+}
+
+async function runInTransaction(client, sql) {
+  await client.query('BEGIN');
   try {
-    console.log('Початок міграції БД...');
+    await client.query(sql);
+    await client.query('COMMIT');
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  }
+}
 
-    // 1. Таблиця items (збережена для 1-ї лаби)
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS items (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(255) NOT NULL
-      );
+// Будь-яке число: «замок» на час міграції, щоб кілька подів у Kubernetes не мігрували одночасно
+const MIGRATION_LOCK_ID = 7262024;
+
+async function migrate({ seed = false } = {}) {
+  const client = await db.connect();
+  try {
+    await client.query('SELECT pg_advisory_lock($1)', [MIGRATION_LOCK_ID]);
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS schema_migrations (
+        version VARCHAR(255) PRIMARY KEY,
+        applied_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      )
     `);
 
-    // 2. Користувачі (User)
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        email VARCHAR(255) UNIQUE NOT NULL
-      );
-    `);
+    const { rows } = await client.query('SELECT version FROM schema_migrations');
+    const applied = new Set(rows.map((r) => r.version));
 
-    // 3. Сторінки нотатника (Page)
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS pages (
-        id SERIAL PRIMARY KEY,
-        title VARCHAR(255) NOT NULL DEFAULT 'Untitled',
-        icon VARCHAR(50),
-        parent_id INTEGER REFERENCES pages(id) ON DELETE CASCADE,
-        user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-        is_archived BOOLEAN NOT NULL DEFAULT FALSE
-      );
-    `);
+    for (const file of sqlFiles(MIGRATIONS_DIR)) {
+      if (applied.has(file)) continue;
+      const sql = fs.readFileSync(path.join(MIGRATIONS_DIR, file), 'utf8');
+      await runInTransaction(client, `${sql}\nINSERT INTO schema_migrations (version) VALUES ('${file}');`);
+      console.log(`✔ міграція ${file}`);
+    }
 
-    // 4. Блоки вмісту сторінки (Block)
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS blocks (
-        id SERIAL PRIMARY KEY,
-        page_id INTEGER NOT NULL REFERENCES pages(id) ON DELETE CASCADE,
-        type VARCHAR(50) NOT NULL DEFAULT 'paragraph',
-        content TEXT DEFAULT '',
-        position INTEGER NOT NULL DEFAULT 0
-      );
-    `);
-
-    // --- Початкові тестові дані (Seed) ---
-    await db.query(`
-      INSERT INTO items (name)
-      SELECT 'test1' WHERE NOT EXISTS (SELECT 1 FROM items WHERE name = 'test1');
-    `);
-
-    await db.query(`
-      INSERT INTO users (name, email)
-      VALUES ('Студент', 'student@notion.local')
-      ON CONFLICT (email) DO NOTHING;
-    `);
-
-    await db.query(`
-      INSERT INTO pages (title, icon)
-      SELECT 'Головна нотатка', '📝'
-      WHERE NOT EXISTS (SELECT 1 FROM pages WHERE title = 'Головна нотатка');
-    `);
-
-    await db.query(`
-      INSERT INTO blocks (page_id, type, content, position)
-      SELECT p.id, 'paragraph', 'Привіт! Це мій перший блок у нотатнику.', 0
-      FROM pages p
-      WHERE p.title = 'Головна нотатка'
-        AND NOT EXISTS (SELECT 1 FROM blocks WHERE page_id = p.id);
-    `);
+    if (seed) {
+      for (const file of sqlFiles(SEEDS_DIR)) {
+        await runInTransaction(client, fs.readFileSync(path.join(SEEDS_DIR, file), 'utf8'));
+        console.log(`✔ сид ${file}`);
+      }
+    }
 
     console.log('Міграція успішно завершена!');
-  } catch (error) {
-    console.error('Помилка міграції:', error);
   } finally {
-    await db.end();
+    await client.query('SELECT pg_advisory_unlock($1)', [MIGRATION_LOCK_ID]).catch(() => {});
+    client.release();
   }
-};
+}
 
-migrate();
+if (require.main === module) {
+  migrate({ seed: process.argv.includes('--seed') })
+    .then(() => db.end())
+    .catch(async (err) => {
+      console.error('Помилка міграції:', err.message);
+      await db.end();
+      process.exit(1);
+    });
+}
+
+module.exports = migrate;
