@@ -3,8 +3,11 @@ info:
   title: DocuFlow API (Notion Clone)
   description: |
     RESTful API для платформи управління базою знань і документами DocuFlow.
-    Реалізовано в межах Практики 4 (Модульний моноліт) для контексту Document & Page Management.
-  version: 1.0.0
+    Практики 4–5: демо-ендпоінти /pages, /items, /health (без входу, «пісочниця»).
+    Курсовий проєкт: /api/... — компанії, ролі (RBAC), дерево сторінок з блоками,
+    файли-документи, оргструктура та пошук. Захищені маршрути потребують JWT у заголовку
+    Authorization: Bearer <token>.
+  version: 2.0.0
 servers:
   - url: http://localhost:8080
     description: Локальний сервер розробки
@@ -300,7 +303,564 @@ paths:
                 details:
                   - message: "Page with ID 999 not found"
 
+  /ready:
+    get:
+      summary: Готовність до роботи (readiness)
+      description: Перевіряє з'єднання з PostgreSQL. Використовується readinessProbe у Kubernetes.
+      operationId: getReady
+      tags: [System]
+      responses:
+        '200':
+          description: Сервіс готовий приймати запити
+          content:
+            application/json:
+              example: { status: ready }
+        '503':
+          description: База даних недоступна
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  # ===================== Курсовий проєкт: /api =====================
+  /api/auth/register:
+    post:
+      summary: Реєстрація компанії та її власника
+      operationId: register
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterRequest' }
+      responses:
+        '201':
+          description: Компанію створено, користувач — власник (owner)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthResponse' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /api/auth/login:
+    post:
+      summary: Вхід за email і паролем
+      description: Обмеження — 10 спроб за хвилину з однієї IP (захист від підбору пароля).
+      operationId: login
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '200':
+          description: Успішний вхід
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429':
+          description: Забагато спроб входу
+          headers:
+            Retry-After: { schema: { type: integer } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  /api/auth/me:
+    get:
+      summary: Поточний користувач, компанія та роль
+      operationId: me
+      tags: [Auth]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Профіль
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/workspace:
+    get:
+      summary: Інформація про компанію та лічильники
+      operationId: getWorkspace
+      tags: [Workspace]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Компанія
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WorkspaceOverview' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    patch:
+      summary: Перейменування компанії (admin, owner)
+      operationId: renameWorkspace
+      tags: [Workspace]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string, minLength: 2, maxLength: 100 }
+      responses:
+        '200': { description: Оновлено }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /api/members:
+    get:
+      summary: Список працівників компанії
+      operationId: listMembers
+      tags: [Members]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Працівники
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Member' }
+    post:
+      summary: Додати працівника (admin, owner)
+      description: Створює обліковий запис із тимчасовим паролем і додає до компанії.
+      operationId: addMember
+      tags: [Members]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AddMemberRequest' }
+      responses:
+        '201':
+          description: Працівника додано
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Member' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /api/members/{userId}:
+    parameters:
+      - { name: userId, in: path, required: true, schema: { type: integer } }
+    patch:
+      summary: Змінити роль або посаду працівника
+      operationId: updateMember
+      tags: [Members]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role: { $ref: '#/components/schemas/Role' }
+                positionId: { type: integer, nullable: true }
+      responses:
+        '200':
+          description: Оновлено
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Member' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+    delete:
+      summary: Видалити працівника з компанії
+      operationId: removeMember
+      tags: [Members]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: Видалено }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /api/pages:
+    get:
+      summary: Дерево сторінок компанії (плаский список з parentId)
+      operationId: listKnowledgePages
+      tags: [Knowledge Base]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Сторінки (без кошика)
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/KnowledgePage' }
+    post:
+      summary: Створити сторінку або розділ (editor+)
+      description: Підтримує заголовок Idempotency-Key (захист від подвійного кліку).
+      operationId: createKnowledgePage
+      tags: [Knowledge Base]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: Idempotency-Key, in: header, required: false, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title]
+              properties:
+                title: { type: string, maxLength: 255, example: Регламент відпусток }
+                icon: { type: string, nullable: true, example: 🏖️ }
+                parentId: { type: integer, nullable: true }
+      responses:
+        '201':
+          description: Створено
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/KnowledgePage' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /api/pages/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    get:
+      summary: Сторінка з блоками, файлами, шляхом і підсторінками
+      operationId: getKnowledgePage
+      tags: [Knowledge Base]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Сторінка
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/KnowledgePageDetails' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      summary: Перейменувати, змінити іконку або перемістити сторінку
+      operationId: updateKnowledgePage
+      tags: [Knowledge Base]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                icon: { type: string, nullable: true }
+                parentId: { type: integer, nullable: true, description: 'null — перемістити в корінь' }
+                position: { type: integer, minimum: 0 }
+      responses:
+        '200':
+          description: Оновлено
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/KnowledgePage' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      summary: Перемістити сторінку разом із підсторінками в кошик
+      operationId: archiveKnowledgePage
+      tags: [Knowledge Base]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Кількість переміщених у кошик сторінок
+          content:
+            application/json:
+              example: { archived: 3 }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/pages/{id}/blocks:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    put:
+      summary: Зберегти вміст сторінки (увесь список блоків по порядку)
+      operationId: saveBlocks
+      tags: [Knowledge Base]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [blocks]
+              properties:
+                blocks:
+                  type: array
+                  maxItems: 500
+                  items: { $ref: '#/components/schemas/BlockInput' }
+      responses:
+        '200':
+          description: Збережені блоки
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Block' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+
+  /api/pages/{id}/attachments:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    post:
+      summary: Завантажити файл-документ до сторінки (до 10 МБ)
+      operationId: uploadAttachment
+      tags: [Files]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        '201':
+          description: Файл збережено
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Attachment' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+        '413': { $ref: '#/components/responses/ValidationFailed' }
+
+  /api/attachments/{id}/download:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    get:
+      summary: Скачати файл
+      operationId: downloadAttachment
+      tags: [Files]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Вміст файлу; ім'я — у Content-Disposition (UTF-8)
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/attachments/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    delete:
+      summary: Видалити файл
+      operationId: deleteAttachment
+      tags: [Files]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: Видалено }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/trash:
+    get:
+      summary: Кошик (видалені сторінки)
+      operationId: listTrash
+      tags: [Knowledge Base]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Видалені сторінки верхнього рівня }
+
+  /api/trash/{id}/restore:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    post:
+      summary: Відновити сторінку з підсторінками
+      operationId: restorePage
+      tags: [Knowledge Base]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Відновлено
+          content:
+            application/json:
+              example: { restored: 3 }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/trash/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    delete:
+      summary: Видалити назавжди (admin, owner)
+      operationId: purgePage
+      tags: [Knowledge Base]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: Видалено назавжди }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/search:
+    get:
+      summary: Пошук по назвах, тексту, таблицях і назвах файлів
+      operationId: search
+      tags: [Knowledge Base]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string, minLength: 2, maxLength: 100 } }
+      responses:
+        '200':
+          description: Знайдені сторінки
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/SearchResult' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+
+  /api/org:
+    get:
+      summary: Оргструктура — відділи, посади, працівники
+      operationId: getOrg
+      tags: [Org Structure]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Структура компанії
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OrgStructure' }
+
+  /api/departments:
+    post:
+      summary: Створити відділ (admin, owner)
+      operationId: createDepartment
+      tags: [Org Structure]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DepartmentInput' }
+      responses:
+        '201':
+          description: Створено
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Department' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /api/departments/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    patch:
+      summary: Змінити відділ
+      operationId: updateDepartment
+      tags: [Org Structure]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DepartmentInput' }
+      responses:
+        '200': { description: Оновлено }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      summary: Видалити відділ разом із підвідділами та посадами
+      operationId: deleteDepartment
+      tags: [Org Structure]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: Видалено }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/positions:
+    post:
+      summary: Створити посаду у відділі (admin, owner)
+      operationId: createPosition
+      tags: [Org Structure]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PositionInput' }
+      responses:
+        '201':
+          description: Створено
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Position' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+
+  /api/positions/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    patch:
+      summary: Змінити посаду
+      operationId: updatePosition
+      tags: [Org Structure]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PositionInput' }
+      responses:
+        '200': { description: Оновлено }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      summary: Видалити посаду
+      operationId: deletePosition
+      tags: [Org Structure]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: Видалено }
+        '404': { $ref: '#/components/responses/NotFound' }
+
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    ValidationFailed:
+      description: Некоректні дані запиту
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Unauthorized:
+      description: Немає токена, токен недійсний або неправильний пароль
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example:
+            error: UnauthorizedError
+            code: INVALID_TOKEN
+            details: [{ message: Invalid or expired token }]
+            requestId: 1f0c2b7e-0000-4000-8000-000000000000
+    Forbidden:
+      description: Роль користувача не дозволяє цю дію
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example:
+            error: ForbiddenError
+            code: FORBIDDEN
+            details: [{ message: 'Role "viewer" cannot perform "content:write"' }]
+            requestId: 1f0c2b7e-0000-4000-8000-000000000000
+    NotFound:
+      description: Ресурс не знайдено в межах компанії
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Conflict:
+      description: Конфлікт з поточним станом (email зайнятий, останній власник тощо)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+
   schemas:
     HealthResponse:
       type: object
@@ -454,3 +1014,212 @@ components:
           nullable: true
           description: Ідентифікатор запиту (кореляція з X-Request-Id)
           example: "b7e28d14-3c67-4e92-8051-9f939e075bda"
+
+    Role:
+      type: string
+      enum: [owner, admin, editor, viewer]
+      description: owner — усе; admin — працівники й оргструктура; editor — редагування контенту; viewer — лише перегляд
+
+    RegisterRequest:
+      type: object
+      required: [companyName, name, email, password]
+      properties:
+        companyName: { type: string, minLength: 2, maxLength: 100, example: ТОВ «Пекарня Колосок» }
+        name: { type: string, minLength: 2, maxLength: 100, example: Олена Коваль }
+        email: { type: string, format: email, example: owner@kolosok.demo }
+        password: { type: string, minLength: 8, maxLength: 72, example: demo12345 }
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+
+    AuthResponse:
+      type: object
+      properties:
+        token: { type: string, description: JWT (діє 12 годин) }
+        user:
+          type: object
+          properties:
+            id: { type: integer }
+            name: { type: string }
+            email: { type: string }
+        workspace: { $ref: '#/components/schemas/Workspace' }
+        role: { $ref: '#/components/schemas/Role' }
+
+    Workspace:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        slug: { type: string, example: kolosok }
+        createdAt: { type: string, format: date-time }
+
+    WorkspaceOverview:
+      allOf:
+        - $ref: '#/components/schemas/Workspace'
+        - type: object
+          properties:
+            stats:
+              type: object
+              properties:
+                pages: { type: integer }
+                documents: { type: integer }
+                members: { type: integer }
+                departments: { type: integer }
+                positions: { type: integer }
+
+    Member:
+      type: object
+      properties:
+        userId: { type: integer }
+        name: { type: string }
+        email: { type: string }
+        role: { $ref: '#/components/schemas/Role' }
+        positionId: { type: integer, nullable: true }
+        joinedAt: { type: string, format: date-time }
+
+    AddMemberRequest:
+      type: object
+      required: [email]
+      properties:
+        name: { type: string, description: "Обов'язкове для нового користувача" }
+        email: { type: string, format: email }
+        password: { type: string, minLength: 8, description: Тимчасовий пароль для нового користувача }
+        role: { $ref: '#/components/schemas/Role' }
+        positionId: { type: integer, nullable: true }
+
+    KnowledgePage:
+      type: object
+      properties:
+        id: { type: integer }
+        parentId: { type: integer, nullable: true }
+        title: { type: string }
+        icon: { type: string, nullable: true }
+        position: { type: integer }
+        isArchived: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    PageLink:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        icon: { type: string, nullable: true }
+
+    KnowledgePageDetails:
+      allOf:
+        - $ref: '#/components/schemas/KnowledgePage'
+        - type: object
+          properties:
+            blocks:
+              type: array
+              items: { $ref: '#/components/schemas/Block' }
+            attachments:
+              type: array
+              items: { $ref: '#/components/schemas/Attachment' }
+            breadcrumbs:
+              type: array
+              items: { $ref: '#/components/schemas/PageLink' }
+            children:
+              type: array
+              items: { $ref: '#/components/schemas/PageLink' }
+
+    BlockType:
+      type: string
+      enum: [h1, h2, h3, paragraph, bullet, numbered, todo, quote, callout, code, divider, table]
+
+    BlockInput:
+      type: object
+      required: [type]
+      properties:
+        type: { $ref: '#/components/schemas/BlockType' }
+        content: { type: string, maxLength: 20000 }
+        data:
+          type: object
+          description: 'todo → { checked: boolean }; table → { rows: string[][] }'
+
+    Block:
+      allOf:
+        - $ref: '#/components/schemas/BlockInput'
+        - type: object
+          properties:
+            id: { type: integer }
+            position: { type: integer }
+
+    Attachment:
+      type: object
+      properties:
+        id: { type: integer }
+        pageId: { type: integer }
+        fileName: { type: string, example: Статут.pdf }
+        mimeType: { type: string, example: application/pdf }
+        sizeBytes: { type: integer }
+        uploadedBy: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+
+    SearchResult:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        icon: { type: string, nullable: true }
+        snippet: { type: string, nullable: true, example: '…Заява подається не пізніше ніж за 2 тижні…' }
+        updatedAt: { type: string, format: date-time }
+
+    Department:
+      type: object
+      properties:
+        id: { type: integer }
+        parentId: { type: integer, nullable: true }
+        name: { type: string }
+        description: { type: string }
+        position: { type: integer }
+
+    DepartmentInput:
+      type: object
+      properties:
+        name: { type: string, minLength: 2, maxLength: 150 }
+        description: { type: string, maxLength: 2000 }
+        parentId: { type: integer, nullable: true }
+
+    Position:
+      type: object
+      properties:
+        id: { type: integer }
+        departmentId: { type: integer }
+        title: { type: string }
+        responsibilities: { type: string }
+        headcount: { type: integer }
+        instructionPageId: { type: integer, nullable: true }
+
+    PositionInput:
+      type: object
+      properties:
+        departmentId: { type: integer }
+        title: { type: string, minLength: 2, maxLength: 150 }
+        responsibilities: { type: string, maxLength: 5000 }
+        headcount: { type: integer, minimum: 1, maximum: 1000 }
+        instructionPageId: { type: integer, nullable: true }
+
+    OrgStructure:
+      type: object
+      properties:
+        departments:
+          type: array
+          items: { $ref: '#/components/schemas/Department' }
+        positions:
+          type: array
+          items: { $ref: '#/components/schemas/Position' }
+        members:
+          type: array
+          items:
+            type: object
+            properties:
+              userId: { type: integer }
+              name: { type: string }
+              role: { $ref: '#/components/schemas/Role' }
+              positionId: { type: integer, nullable: true }
