@@ -10,10 +10,13 @@ const logBox = document.getElementById("log");
 
 // ---------- Журнал ----------
 
-function log(text) {
+function labLog(text) {
     const time = new Date().toLocaleTimeString();
     logBox.textContent = `[${time}] ${text}\n` + logBox.textContent;
 }
+
+// http.js пише кожну спробу запиту через window.onHttpLog
+window.onHttpLog = labLog;
 
 // ---------- Degraded mode ----------
 
@@ -63,7 +66,7 @@ async function request(path, options = {}) {
 
 function registerFailure() {
     failCount++;
-    log(`Збій ${failCount} з ${FAIL_LIMIT} поспіль`);
+    labLog(`Збій ${failCount} з ${FAIL_LIMIT} поспіль`);
     if (failCount >= FAIL_LIMIT) enterDegradedMode();
 }
 
@@ -150,7 +153,7 @@ pageForm.addEventListener("submit", async (event) => {
         const res = await createPage(payload);
         if (res.status === 201) {
             const page = await res.json();
-            log(`Створено сторінку id=${page.id}`);
+            labLog(`Створено сторінку id=${page.id}`);
             pageTitle.value = "";
             pageIcon.value = "";
             await loadPages();
@@ -205,12 +208,12 @@ document.getElementById("doubleClickBtn").addEventListener("click", async () => 
             request("/pages", { method: "POST", body: payload, idempotencyKey: key }),
         ]);
         const [pageA, pageB] = await Promise.all([a.json(), b.json()]);
-        log(`Подвійний клік: id перший=${pageA.id}, другий=${pageB.id} ` +
+        labLog(`Подвійний клік: id перший=${pageA.id}, другий=${pageB.id} ` +
             (pageA.id === pageB.id ? "— дубля немає ✔" : "— ДУБЛЬ ✘"));
         await forgetKey(payload);
         await loadPages();
     } catch (err) {
-        log("Подвійний клік не вдався: " + err.message);
+        labLog("Подвійний клік не вдався: " + err.message);
     }
 });
 
@@ -219,9 +222,9 @@ document.getElementById("doubleClickBtn").addEventListener("click", async () => 
 document.getElementById("errorBtn").addEventListener("click", async () => {
     try {
         const res = await request("/health", { extraHeaders: { "X-Simulate-Error": "503" } });
-        log("Остаточна відповідь: " + (await errorText(res)));
+        labLog("Остаточна відповідь: " + (await errorText(res)));
     } catch (err) {
-        log("Запит не вдався: " + err.message);
+        labLog("Запит не вдався: " + err.message);
     }
 });
 
