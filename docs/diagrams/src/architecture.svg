@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="760" viewBox="0 0 1280 760" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#37352f"/>
+    </marker>
+    <style>
+      .t{font-size:20px;font-weight:700;fill:#1f2937}
+      .h{font-size:16px;font-weight:700;fill:#1f2937}
+      .s{font-size:13px;fill:#374151}
+      .m{font-size:12.5px;fill:#4b5563}
+      .lbl{font-size:13px;font-weight:600;fill:#1f2937}
+    </style>
+  </defs>
+  <rect width="1280" height="760" fill="#ffffff"/>
+  <text x="640" y="38" text-anchor="middle" class="t">Архітектура DocuFlow (модульний моноліт)</text>
+
+  <!-- Client -->
+  <rect x="30" y="80" width="300" height="430" rx="14" fill="#eef4ff" stroke="#2f6fde" stroke-width="2"/>
+  <text x="180" y="110" text-anchor="middle" class="h">Клієнт (браузер)</text>
+  <text x="180" y="132" text-anchor="middle" class="m">HTML5 · CSS3 · JavaScript без фреймворків</text>
+  <rect x="50" y="150" width="260" height="98" rx="8" fill="#fff" stroke="#9db7ec"/>
+  <text x="62" y="172" class="lbl">Сторінки</text>
+  <text x="62" y="194" class="s">index.html — вхід / реєстрація</text>
+  <text x="62" y="214" class="s">app.html — застосунок (hash-маршрути)</text>
+  <text x="62" y="234" class="s">labs.html — демо лаб 1–5</text>
+  <rect x="50" y="262" width="260" height="150" rx="8" fill="#fff" stroke="#9db7ec"/>
+  <text x="62" y="284" class="lbl">Модулі js/</text>
+  <text x="62" y="306" class="s">tree.js — дерево розділів</text>
+  <text x="62" y="326" class="s">editor.js — блоковий редактор, файли</text>
+  <text x="62" y="346" class="s">org.js · members.js · views.js</text>
+  <text x="62" y="366" class="s">api.js — токен JWT, помилки</text>
+  <text x="62" y="386" class="s">http.js — таймаут, ретраї, Retry-After,</text>
+  <text x="62" y="404" class="s">  Idempotency-Key, X-Request-Id</text>
+  <rect x="50" y="426" width="260" height="66" rx="8" fill="#fff" stroke="#9db7ec"/>
+  <text x="62" y="448" class="lbl">Стан</text>
+  <text x="62" y="470" class="s">localStorage: токен, розгорнуті гілки</text>
+  <text x="62" y="486" class="s">textContent замість innerHTML (XSS)</text>
+
+  <!-- Arrow client-backend -->
+  <line x1="332" y1="290" x2="418" y2="290" stroke="#37352f" stroke-width="2" marker-end="url(#a)" marker-start="url(#a)"/>
+  <text x="375" y="262" text-anchor="middle" class="lbl">HTTP / REST</text>
+  <text x="375" y="278" text-anchor="middle" class="m">JSON, JWT</text>
+  <text x="375" y="314" text-anchor="middle" class="m">multipart</text>
+  <text x="375" y="330" text-anchor="middle" class="m">(файли)</text>
+
+  <!-- Backend -->
+  <rect x="420" y="80" width="470" height="560" rx="14" fill="#f0fdf4" stroke="#2e8b57" stroke-width="2"/>
+  <text x="655" y="110" text-anchor="middle" class="h">Бекенд: Node.js 20 + Express 5</text>
+  <text x="655" y="132" text-anchor="middle" class="m">залежності лише зверху вниз (ADR 0002)</text>
+
+  <rect x="440" y="148" width="430" height="128" rx="8" fill="#fff" stroke="#86c9a0"/>
+  <text x="452" y="170" class="lbl">api/ — HTTP-шар</text>
+  <text x="452" y="192" class="s">apiRouter.js — /api/auth, /pages, /attachments, /org, /members,</text>
+  <text x="452" y="210" class="s">   /search, /trash, /workspace;  pageRouter.js — лаби 4–5</text>
+  <text x="452" y="232" class="s">middleware: requestId → requestLogger → rateLimiter →</text>
+  <text x="452" y="250" class="s">   faultInjection → auth (JWT) → idempotency → errorHandler</text>
+  <text x="452" y="268" class="s">health: /health (liveness), /ready (readiness)</text>
+  <line x1="655" y1="278" x2="655" y2="296" stroke="#37352f" stroke-width="2" marker-end="url(#a)"/>
+
+  <rect x="440" y="298" width="430" height="92" rx="8" fill="#fff" stroke="#86c9a0"/>
+  <text x="452" y="320" class="lbl">service/ — бізнес-логіка, валідація, RBAC</text>
+  <text x="452" y="342" class="s">AuthService · MemberService · KnowledgeService</text>
+  <text x="452" y="360" class="s">AttachmentService · OrgService · WorkspaceService</text>
+  <text x="452" y="378" class="s">єдиний формат помилок: { error, code, details, requestId }</text>
+  <line x1="655" y1="392" x2="655" y2="410" stroke="#37352f" stroke-width="2" marker-end="url(#a)"/>
+
+  <rect x="440" y="412" width="430" height="74" rx="8" fill="#fff" stroke="#86c9a0"/>
+  <text x="452" y="434" class="lbl">domain/ — сутності та правила</text>
+  <text x="452" y="456" class="s">Workspace · Member (ролі, can) · Page · Block (типи)</text>
+  <text x="452" y="474" class="s">Attachment (MIME, 10 МБ) · Department · Position (цикли)</text>
+  <line x1="655" y1="488" x2="655" y2="506" stroke="#37352f" stroke-width="2" marker-end="url(#a)"/>
+
+  <rect x="440" y="508" width="430" height="112" rx="8" fill="#fff" stroke="#86c9a0"/>
+  <text x="452" y="530" class="lbl">repository/ — доступ до БД (pg Pool)</text>
+  <text x="452" y="552" class="s">User · Workspace · Member · Knowledge · Attachment · Org</text>
+  <text x="452" y="570" class="s">лише параметризовані запити ($1, $2 …), транзакції</text>
+  <text x="452" y="588" class="s">рекурсивні CTE для дерева сторінок і кошика</text>
+  <text x="452" y="606" class="s">migrate.js: migrations/*.sql, seeds/*.sql, advisory lock</text>
+
+  <!-- Arrow backend-db -->
+  <line x1="892" y1="560" x2="978" y2="560" stroke="#37352f" stroke-width="2" marker-end="url(#a)"/>
+  <text x="935" y="534" text-anchor="middle" class="lbl">SQL</text>
+  <text x="935" y="584" text-anchor="middle" class="m">TCP 5432</text>
+
+  <!-- DB -->
+  <rect x="980" y="300" width="270" height="340" rx="14" fill="#fff7ed" stroke="#d97706" stroke-width="2"/>
+  <text x="1115" y="330" text-anchor="middle" class="h">PostgreSQL 15</text>
+  <text x="996" y="358" class="s">workspaces · users</text>
+  <text x="996" y="380" class="s">workspace_members (роль, посада)</text>
+  <text x="996" y="402" class="s">pages (дерево, кошик)</text>
+  <text x="996" y="424" class="s">blocks (type, content, data JSONB)</text>
+  <text x="996" y="446" class="s">attachments (BYTEA ≤ 10 МБ)</text>
+  <text x="996" y="468" class="s">departments · positions</text>
+  <text x="996" y="490" class="s">items (лаба 1) · schema_migrations</text>
+  <text x="996" y="522" class="lbl">Індекси</text>
+  <text x="996" y="544" class="s">pg_trgm GIN — пошук ILIKE</text>
+  <text x="996" y="566" class="s">FK + CHECK — цілісність даних</text>
+  <text x="996" y="588" class="s">тригер updated_at</text>
+
+  <!-- Observability -->
+  <rect x="980" y="80" width="270" height="190" rx="14" fill="#faf5ff" stroke="#8250df" stroke-width="2" stroke-dasharray="7 5"/>
+  <text x="1115" y="110" text-anchor="middle" class="h">Observability (лаба 8)</text>
+  <text x="996" y="138" class="s">OpenTelemetry SDK (tracing.js)</text>
+  <text x="996" y="160" class="s">→ OTLP Collector :4318</text>
+  <text x="996" y="182" class="s">Tempo — трейси</text>
+  <text x="996" y="204" class="s">Prometheus — метрики RED</text>
+  <text x="996" y="226" class="s">Loki — JSON-логи запитів</text>
+  <text x="996" y="248" class="s">Grafana — дашборд і алерти</text>
+  <line x1="892" y1="175" x2="978" y2="175" stroke="#8250df" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#a)"/>
+  <text x="935" y="165" text-anchor="middle" class="m">OTLP</text>
+
+  <!-- Delivery -->
+  <rect x="30" y="540" width="370" height="200" rx="14" fill="#f8fafc" stroke="#64748b" stroke-width="2" stroke-dasharray="7 5"/>
+  <text x="215" y="570" text-anchor="middle" class="h">Доставка (лаби 6, 7, 10)</text>
+  <text x="46" y="598" class="s">GitHub → Actions: тести з PostgreSQL, lint,</text>
+  <text x="46" y="618" class="s">  збірка образів api / web, Trivy</text>
+  <text x="46" y="640" class="s">→ GHCR: docuflow-api, docuflow-web</text>
+  <text x="46" y="662" class="s">→ Docker Compose (web + api + db)</text>
+  <text x="46" y="684" class="s">→ Kubernetes: Ingress → Service → Pods,</text>
+  <text x="46" y="704" class="s">  StatefulSet PostgreSQL, ConfigMap, Secret</text>
+  <text x="46" y="726" class="m">Майбутні модулі: Notifications, Payments, S3</text>
+
+  <text x="1250" y="745" text-anchor="end" class="m">Пунктиром — допоміжна інфраструктура</text>
+</svg>

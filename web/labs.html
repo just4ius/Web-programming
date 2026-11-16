@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocuFlow — лабораторні 1–5</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- Degraded mode (Практична 5): показується після кількох збоїв поспіль -->
+    <div id="degradedBanner" class="banner" hidden></div>
+
+    <div class="container">
+        <header class="header">
+            <h1>DocuFlow · лаби 1–5</h1>
+            <div class="health">
+                <span id="healthStatus" class="badge">сервер: ?</span>
+                <button id="healthBtn">Перевірити /health</button>
+                <button id="slowHealthBtn" class="secondary">Повільний /health (1.5 с)</button>
+            </div>
+        </header>
+
+        <!-- Сторінки: CRUD (Практична 4) -->
+        <section class="card">
+            <h2>Сторінки</h2>
+            <form id="pageForm" class="form">
+                <input id="pageIcon" placeholder="📝" maxlength="4" class="icon-input">
+                <input id="pageTitle" placeholder="Назва сторінки" maxlength="255">
+                <button type="submit">Створити</button>
+            </form>
+            <div id="pagesStatus" class="status"></div>
+            <ul id="pagesList"></ul>
+            <button id="reloadPagesBtn" class="secondary">Оновити список</button>
+            <button id="doubleClickBtn" class="secondary">Тест подвійного кліку</button>
+        </section>
+
+        <!-- Симуляція збоїв для перевірки ретраїв, таймаутів і degraded mode (Практична 5) -->
+        <section class="card">
+            <h2>Симуляція збоїв</h2>
+            <label class="check">
+                <input type="checkbox" id="chaosToggle">
+                Випадкові збої та затримки (X-Simulate-Chaos)
+            </label>
+            <button id="errorBtn" class="secondary">Запит з помилкою 503</button>
+        </section>
+
+        <!-- Практична 1: GET /items -->
+        <section class="card">
+            <h2>Практична 1: items</h2>
+            <button id="loadBtn">Load items</button>
+            <div id="statusMessage" class="status"></div>
+            <ul id="itemsList"></ul>
+        </section>
+
+        <!-- Журнал запитів: статуси, спроби, X-Request-Id -->
+        <section class="card">
+            <h2>Журнал запитів</h2>
+            <pre id="log" class="log"></pre>
+        </section>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="http.js"></script>
+    <script src="labs.js"></script>
+</body>
+
+</html>

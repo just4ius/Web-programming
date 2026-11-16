@@ -1,6 +1,10 @@
 // HTTP-хелпер для Практичної 5: таймаут, ретраї з backoff, Retry-After, X-Request-Id, Idempotency-Key
 
-const API_BASE = "http://localhost:8080";
+// Адреса бекенду задається в config.js (у Docker/Kubernetes її можна підмінити)
+const API_BASE = window.API_BASE || "http://localhost:8080";
+
+// Журнал спроб: на сторінці лаб він виводиться на екран, у застосунку — нікуди
+const log = (text) => (window.onHttpLog || (() => {}))(text);
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -24,7 +28,9 @@ async function fetchWithResilience(path, options = {}) {
 
     for (let attempt = 0; ; attempt++) {
         const headers = { "X-Request-Id": requestId, ...extraHeaders };
-        if (body !== undefined) headers["Content-Type"] = "application/json";
+        // FormData (завантаження файлу) браузер кодує сам, JSON — ми
+        const isForm = body instanceof FormData;
+        if (body !== undefined && !isForm) headers["Content-Type"] = "application/json";
         if (idempotencyKey) headers["Idempotency-Key"] = idempotencyKey;
 
         // Таймаут: якщо сервер не відповів за timeoutMs, запит скасовується
@@ -36,7 +42,7 @@ async function fetchWithResilience(path, options = {}) {
             const res = await fetch(API_BASE + path, {
                 method,
                 headers,
-                body: body !== undefined ? JSON.stringify(body) : undefined,
+                body: body === undefined ? undefined : isForm ? body : JSON.stringify(body),
                 signal: controller.signal,
             });
 
