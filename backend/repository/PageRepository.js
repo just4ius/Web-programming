@@ -21,7 +21,9 @@ class PageRepository {
     }
 
     try {
-      const conditions = [];
+      // Ендпоінт лаб 4–5 працює лише з «пісочницею» (сторінки без компанії),
+      // щоб без входу не можна було побачити документи компаній
+      const conditions = ['workspace_id IS NULL'];
       const values = [];
 
       if (isArchived !== null && isArchived !== undefined) {
@@ -34,7 +36,7 @@ class PageRepository {
         conditions.push(`parent_id = $${values.length}`);
       }
 
-      const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+      const whereClause = `WHERE ${conditions.join(' AND ')}`;
       const query = `
         SELECT id, title, icon, parent_id AS "parentId", user_id AS "userId", is_archived AS "isArchived"
         FROM pages
@@ -62,7 +64,7 @@ class PageRepository {
       const query = `
         SELECT id, title, icon, parent_id AS "parentId", user_id AS "userId", is_archived AS "isArchived"
         FROM pages
-        WHERE id = $1
+        WHERE id = $1 AND workspace_id IS NULL
       `;
       const result = await db.query(query, [pageId]);
       if (result.rows.length === 0) {
@@ -132,7 +134,7 @@ class PageRepository {
             icon = $2,
             parent_id = $3,
             is_archived = COALESCE($4, is_archived)
-        WHERE id = $5
+        WHERE id = $5 AND workspace_id IS NULL
         RETURNING id, title, icon, parent_id AS "parentId", user_id AS "userId", is_archived AS "isArchived"
       `;
       const values = [
@@ -162,7 +164,7 @@ class PageRepository {
     }
 
     try {
-      const query = 'DELETE FROM pages WHERE id = $1 RETURNING id';
+      const query = 'DELETE FROM pages WHERE id = $1 AND workspace_id IS NULL RETURNING id';
       const result = await db.query(query, [pageId]);
       return result.rowCount > 0;
     } catch (err) {
