@@ -85,6 +85,27 @@ function createPageRouter(optionsOrService = new PageService()) {
 function errorHandler(err, req, res, next) {
   const requestId = req.rid || req.get?.('X-Request-Id') || 'unknown';
 
+  // Некоректний JSON у тілі запиту
+  if (err.type === 'entity.parse.failed') {
+    return res.status(400).json({
+      error: 'ValidationError',
+      code: 'INVALID_JSON',
+      details: [{ message: 'Request body is not valid JSON' }],
+      requestId: requestId,
+    });
+  }
+
+  // Помилки завантаження файлів (multer): завеликий файл або зайві поля
+  if (err.name === 'MulterError') {
+    const tooLarge = err.code === 'LIMIT_FILE_SIZE';
+    return res.status(tooLarge ? 413 : 400).json({
+      error: 'ValidationError',
+      code: tooLarge ? 'FILE_TOO_LARGE' : 'INVALID_UPLOAD',
+      details: [{ field: 'file', message: tooLarge ? 'File cannot be larger than 10 MB' : err.message }],
+      requestId: requestId,
+    });
+  }
+
   if (err instanceof AppError) {
     return res.status(err.statusCode).json({
       error: err.error,

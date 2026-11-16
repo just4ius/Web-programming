@@ -44,7 +44,7 @@ function createIdempotencyMiddleware({
     if (inFlight.has(key)) {
       try {
         const result = await inFlight.get(key);
-        const responseBody = typeof cached.body === 'object' && cached.body !== null
+        const responseBody = typeof result.body === 'object' && result.body !== null
           ? { ...result.body, requestId: req.rid }
           : result.body;
         return res.status(result.status).json(responseBody);
