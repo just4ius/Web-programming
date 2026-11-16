@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="860" viewBox="0 0 1200 860" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#37352f"/></marker>
+    <style>
+      .h{font-size:14px;font-weight:700;fill:#1f2937}
+      .m{font-size:12.5px;fill:#1f2937}
+      .r{font-size:12.5px;fill:#2e8b57}
+      .n{font-size:12px;fill:#6b7280;font-style:italic}
+      .life{stroke:#9ca3af;stroke-width:1.4;stroke-dasharray:6 5}
+      .call{stroke:#37352f;stroke-width:1.5;marker-end:url(#a)}
+      .ret{stroke:#2e8b57;stroke-width:1.4;stroke-dasharray:6 4;marker-end:url(#a)}
+    </style>
+  </defs>
+  <rect width="1200" height="860" fill="#fff"/>
+  <text x="600" y="32" text-anchor="middle" font-size="20" font-weight="700" fill="#1f2937">Діаграма послідовності: вхід і збереження сторінки</text>
+
+  <!-- participants: x = 110, 330, 560, 790, 1050 -->
+  <g>
+    <rect x="40" y="56" width="140" height="44" rx="8" fill="#eef4ff" stroke="#2f6fde"/><text x="110" y="83" text-anchor="middle" class="h">Браузер (JS)</text>
+    <rect x="250" y="56" width="160" height="44" rx="8" fill="#f0fdf4" stroke="#2e8b57"/><text x="330" y="76" text-anchor="middle" class="h">api/ middleware</text><text x="330" y="93" text-anchor="middle" class="n">auth, idempotency</text>
+    <rect x="480" y="56" width="160" height="44" rx="8" fill="#f0fdf4" stroke="#2e8b57"/><text x="560" y="83" text-anchor="middle" class="h">service/</text>
+    <rect x="710" y="56" width="160" height="44" rx="8" fill="#f0fdf4" stroke="#2e8b57"/><text x="790" y="83" text-anchor="middle" class="h">repository/</text>
+    <rect x="970" y="56" width="160" height="44" rx="8" fill="#fff7ed" stroke="#d97706"/><text x="1050" y="83" text-anchor="middle" class="h">PostgreSQL</text>
+  </g>
+  <line x1="110" y1="100" x2="110" y2="840" class="life"/>
+  <line x1="330" y1="100" x2="330" y2="840" class="life"/>
+  <line x1="560" y1="100" x2="560" y2="840" class="life"/>
+  <line x1="790" y1="100" x2="790" y2="840" class="life"/>
+  <line x1="1050" y1="100" x2="1050" y2="840" class="life"/>
+
+  <!-- Section 1: login -->
+  <rect x="20" y="112" width="1160" height="22" fill="#f3f4f6"/><text x="30" y="128" class="h">1. Вхід</text>
+  <line x1="110" y1="158" x2="326" y2="158" class="call"/><text x="118" y="152" class="m">POST /api/auth/login {email, password}</text>
+  <line x1="330" y1="180" x2="556" y2="180" class="call"/><text x="338" y="174" class="m">AuthService.login()</text>
+  <line x1="560" y1="202" x2="786" y2="202" class="call"/><text x="568" y="196" class="m">findByEmail(email)</text>
+  <line x1="790" y1="224" x2="1046" y2="224" class="call"/><text x="798" y="218" class="m">SELECT … FROM users WHERE lower(email)=$1</text>
+  <line x1="1050" y1="246" x2="564" y2="246" class="ret"/><text x="900" y="240" class="r">user + password_hash</text>
+  <text x="568" y="268" class="n">bcrypt.compare(password, hash) → роль з workspace_members</text>
+  <text x="568" y="286" class="n">jwt.sign({ sub: userId, ws: workspaceId }, 12 год)</text>
+  <line x1="560" y1="306" x2="114" y2="306" class="ret"/><text x="200" y="300" class="r">200 { token, user, workspace, role }</text>
+  <text x="118" y="326" class="n">localStorage["docuflow.token"] = token</text>
+
+  <!-- Section 2: save -->
+  <rect x="20" y="346" width="1160" height="22" fill="#f3f4f6"/><text x="30" y="362" class="h">2. Збереження сторінки (Ctrl+S)</text>
+  <line x1="110" y1="394" x2="326" y2="394" class="call"/><text x="118" y="388" class="m">PUT /api/pages/6/blocks + Bearer</text>
+  <text x="338" y="416" class="n">auth: jwt.verify → роль із БД</text>
+  <line x1="330" y1="430" x2="1046" y2="430" class="call"/><text x="600" y="424" class="m">SELECT … FROM workspace_members WHERE workspace_id=$1 AND user_id=$2</text>
+  <line x1="1050" y1="452" x2="334" y2="452" class="ret"/><text x="600" y="446" class="r">{ role: "editor" }</text>
+  <line x1="330" y1="476" x2="556" y2="476" class="call"/><text x="338" y="470" class="m">saveBlocks(actor, 6, blocks)</text>
+  <text x="568" y="498" class="n">can("editor","content:write") ✓ · Block.validate() для кожного</text>
+  <line x1="560" y1="520" x2="786" y2="520" class="call"/><text x="568" y="514" class="m">replaceBlocks(ws, 6, blocks)</text>
+  <line x1="790" y1="544" x2="1046" y2="544" class="call"/><text x="798" y="538" class="m">BEGIN</text>
+  <line x1="790" y1="568" x2="1046" y2="568" class="call"/><text x="798" y="562" class="m">DELETE FROM blocks WHERE page_id=$1</text>
+  <line x1="790" y1="592" x2="1046" y2="592" class="call"/><text x="798" y="586" class="m">INSERT INTO blocks … (× N блоків)</text>
+  <line x1="790" y1="616" x2="1046" y2="616" class="call"/><text x="798" y="610" class="m">UPDATE pages SET updated_by=$3 (тригер updated_at)</text>
+  <line x1="790" y1="640" x2="1046" y2="640" class="call"/><text x="798" y="634" class="m">COMMIT</text>
+  <line x1="1050" y1="662" x2="564" y2="662" class="ret"/><text x="800" y="656" class="r">збережені блоки</text>
+  <line x1="560" y1="686" x2="114" y2="686" class="ret"/><text x="200" y="680" class="r">200 [ blocks ] + X-Request-Id</text>
+  <text x="118" y="708" class="n">toast «Збережено ✔», перерендер сторінки</text>
+
+  <!-- alt -->
+  <rect x="100" y="728" width="1000" height="96" rx="6" fill="none" stroke="#d44c47" stroke-dasharray="5 4"/>
+  <text x="112" y="746" class="h" fill="#d44c47">alt: помилки</text>
+  <text x="112" y="768" class="m">• роль viewer → 403 { error: "ForbiddenError", code: "FORBIDDEN", requestId }</text>
+  <text x="112" y="788" class="m">• невідомий тип блоку → 400 INVALID_BLOCK «Block #2: …»; помилка в транзакції → ROLLBACK, дані не змінюються</text>
+  <text x="112" y="808" class="m">• 5xx / таймаут → http.js повторює запит з backoff + jitter; 429 → чекає Retry-After</text>
+</svg>
