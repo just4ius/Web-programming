@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="g" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#fff" stroke="#37352f"/></marker>
+    <style>
+      .uc{fill:#eef4ff;stroke:#2f6fde;stroke-width:1.6}
+      .uc2{fill:#fff7ed;stroke:#d97706;stroke-width:1.6}
+      .uc3{fill:#f0fdf4;stroke:#2e8b57;stroke-width:1.6}
+      .t{font-size:13.5px;fill:#1f2937}
+      .a{font-size:15px;font-weight:700;fill:#1f2937}
+      .l{stroke:#6b7280;stroke-width:1.3}
+    </style>
+  </defs>
+  <rect width="1200" height="760" fill="#fff"/>
+  <text x="600" y="34" text-anchor="middle" font-size="20" font-weight="700" fill="#1f2937">Діаграма варіантів використання DocuFlow</text>
+
+  <!-- system boundary -->
+  <rect x="250" y="60" width="700" height="680" rx="16" fill="#fafafa" stroke="#9ca3af" stroke-width="1.5"/>
+  <text x="600" y="86" text-anchor="middle" font-size="15" font-weight="700" fill="#4b5563">Система DocuFlow</text>
+
+  <!-- actor helper: stick figure -->
+  <g id="viewer" transform="translate(110,150)">
+    <circle cx="0" cy="0" r="14" fill="none" stroke="#37352f" stroke-width="2"/>
+    <line x1="0" y1="14" x2="0" y2="52" stroke="#37352f" stroke-width="2"/>
+    <line x1="-20" y1="28" x2="20" y2="28" stroke="#37352f" stroke-width="2"/>
+    <line x1="0" y1="52" x2="-16" y2="78" stroke="#37352f" stroke-width="2"/>
+    <line x1="0" y1="52" x2="16" y2="78" stroke="#37352f" stroke-width="2"/>
+  </g>
+  <text x="110" y="250" text-anchor="middle" class="a">Глядач</text>
+  <text x="110" y="268" text-anchor="middle" class="t">(viewer)</text>
+
+  <g transform="translate(110,330)">
+    <circle cx="0" cy="0" r="14" fill="none" stroke="#37352f" stroke-width="2"/>
+    <line x1="0" y1="14" x2="0" y2="52" stroke="#37352f" stroke-width="2"/>
+    <line x1="-20" y1="28" x2="20" y2="28" stroke="#37352f" stroke-width="2"/>
+    <line x1="0" y1="52" x2="-16" y2="78" stroke="#37352f" stroke-width="2"/>
+    <line x1="0" y1="52" x2="16" y2="78" stroke="#37352f" stroke-width="2"/>
+  </g>
+  <text x="110" y="430" text-anchor="middle" class="a">Редактор</text>
+  <text x="110" y="448" text-anchor="middle" class="t">(editor)</text>
+
+  <g transform="translate(1090,210)">
+    <circle cx="0" cy="0" r="14" fill="none" stroke="#37352f" stroke-width="2"/>
+    <line x1="0" y1="14" x2="0" y2="52" stroke="#37352f" stroke-width="2"/>
+    <line x1="-20" y1="28" x2="20" y2="28" stroke="#37352f" stroke-width="2"/>
+    <line x1="0" y1="52" x2="-16" y2="78" stroke="#37352f" stroke-width="2"/>
+    <line x1="0" y1="52" x2="16" y2="78" stroke="#37352f" stroke-width="2"/>
+  </g>
+  <text x="1090" y="310" text-anchor="middle" class="a">Адміністратор</text>
+  <text x="1090" y="328" text-anchor="middle" class="t">(admin)</text>
+
+  <g transform="translate(1090,520)">
+    <circle cx="0" cy="0" r="14" fill="none" stroke="#37352f" stroke-width="2"/>
+    <line x1="0" y1="14" x2="0" y2="52" stroke="#37352f" stroke-width="2"/>
+    <line x1="-20" y1="28" x2="20" y2="28" stroke="#37352f" stroke-width="2"/>
+    <line x1="0" y1="52" x2="-16" y2="78" stroke="#37352f" stroke-width="2"/>
+    <line x1="0" y1="52" x2="16" y2="78" stroke="#37352f" stroke-width="2"/>
+  </g>
+  <text x="1090" y="620" text-anchor="middle" class="a">Власник</text>
+  <text x="1090" y="638" text-anchor="middle" class="t">(owner)</text>
+
+  <!-- generalization: editor -> viewer, admin -> editor, owner -> admin -->
+  <line x1="110" y1="318" x2="110" y2="276" stroke="#37352f" stroke-width="1.6" marker-end="url(#g)"/>
+  <line x1="1090" y1="506" x2="1090" y2="336" stroke="#37352f" stroke-width="1.6" marker-end="url(#g)"/>
+  <text x="1100" y="430" class="t" fill="#6b7280">успадковує</text>
+  <text x="122" y="300" class="t" fill="#6b7280">успадковує</text>
+
+  <!-- Viewer use cases -->
+  <ellipse cx="420" cy="130" rx="140" ry="26" class="uc"/><text x="420" y="135" text-anchor="middle" class="t">Увійти в систему (JWT)</text>
+  <ellipse cx="420" cy="190" rx="140" ry="26" class="uc"/><text x="420" y="195" text-anchor="middle" class="t">Переглядати дерево і сторінки</text>
+  <ellipse cx="420" cy="250" rx="140" ry="26" class="uc"/><text x="420" y="255" text-anchor="middle" class="t">Шукати по базі знань</text>
+  <ellipse cx="420" cy="310" rx="140" ry="26" class="uc"/><text x="420" y="315" text-anchor="middle" class="t">Скачувати документи</text>
+  <ellipse cx="780" cy="130" rx="140" ry="26" class="uc"/><text x="780" y="135" text-anchor="middle" class="t">Переглядати оргструктуру</text>
+  <line x1="132" y1="180" x2="280" y2="130" class="l"/>
+  <line x1="132" y1="180" x2="280" y2="190" class="l"/>
+  <line x1="132" y1="180" x2="280" y2="250" class="l"/>
+  <line x1="132" y1="180" x2="280" y2="310" class="l"/>
+  <path d="M132,170 C300,60 560,70 640,128" fill="none" class="l"/>
+
+  <!-- Editor use cases -->
+  <ellipse cx="420" cy="400" rx="140" ry="26" class="uc3"/><text x="420" y="405" text-anchor="middle" class="t">Створювати розділи/сторінки</text>
+  <ellipse cx="420" cy="460" rx="140" ry="26" class="uc3"/><text x="420" y="465" text-anchor="middle" class="t">Редагувати блоки (текст, таблиці)</text>
+  <ellipse cx="420" cy="520" rx="140" ry="26" class="uc3"/><text x="420" y="525" text-anchor="middle" class="t">Завантажувати документи</text>
+  <ellipse cx="420" cy="580" rx="140" ry="26" class="uc3"/><text x="420" y="585" text-anchor="middle" class="t">Переміщувати сторінки</text>
+  <ellipse cx="420" cy="640" rx="140" ry="26" class="uc3"/><text x="420" y="645" text-anchor="middle" class="t">Кошик: видалити / відновити</text>
+  <line x1="132" y1="360" x2="280" y2="400" class="l"/>
+  <line x1="132" y1="360" x2="280" y2="460" class="l"/>
+  <line x1="132" y1="360" x2="280" y2="520" class="l"/>
+  <line x1="132" y1="360" x2="280" y2="580" class="l"/>
+  <line x1="132" y1="360" x2="280" y2="640" class="l"/>
+
+  <!-- Admin use cases -->
+  <ellipse cx="780" cy="230" rx="140" ry="26" class="uc2"/><text x="780" y="235" text-anchor="middle" class="t">Керувати відділами і посадами</text>
+  <ellipse cx="780" cy="290" rx="140" ry="26" class="uc2"/><text x="780" y="295" text-anchor="middle" class="t">Додавати працівників</text>
+  <ellipse cx="780" cy="350" rx="140" ry="26" class="uc2"/><text x="780" y="355" text-anchor="middle" class="t">Змінювати ролі та посади</text>
+  <ellipse cx="780" cy="410" rx="140" ry="26" class="uc2"/><text x="780" y="415" text-anchor="middle" class="t">Видаляти з кошика назавжди</text>
+  <ellipse cx="780" cy="470" rx="140" ry="26" class="uc2"/><text x="780" y="475" text-anchor="middle" class="t">Перейменувати компанію</text>
+  <line x1="1068" y1="240" x2="920" y2="230" class="l"/>
+  <line x1="1068" y1="240" x2="920" y2="290" class="l"/>
+  <line x1="1068" y1="240" x2="920" y2="350" class="l"/>
+  <line x1="1068" y1="240" x2="920" y2="410" class="l"/>
+  <line x1="1068" y1="240" x2="920" y2="470" class="l"/>
+
+  <!-- Owner use cases -->
+  <ellipse cx="780" cy="570" rx="140" ry="26" class="uc2"/><text x="780" y="575" text-anchor="middle" class="t">Зареєструвати компанію</text>
+  <ellipse cx="780" cy="630" rx="140" ry="26" class="uc2"/><text x="780" y="635" text-anchor="middle" class="t">Призначати інших власників</text>
+  <line x1="1068" y1="550" x2="920" y2="570" class="l"/>
+  <line x1="1068" y1="550" x2="920" y2="630" class="l"/>
+
+  <text x="600" y="715" text-anchor="middle" class="t" fill="#4b5563">Кожна роль має всі можливості попередньої: Глядач ⊂ Редактор ⊂ Адміністратор ⊂ Власник</text>
+</svg>
